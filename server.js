@@ -3,6 +3,7 @@ var morgan = require('morgan');
 var path = require('path');
 var Pool = require('pg').Pool;
 var crypto = require('crypto');
+var bodyParser = require('body-parser');
 
 var config = {
     user : 'kumar805231',
@@ -14,6 +15,7 @@ var config = {
 
 var app = express();
 app.use(morgan('combined'));
+app.use(bodyParser.json());
 
 function createTemplate(data) {
     var title = data.title;
@@ -53,13 +55,51 @@ app.get('/', function (req, res) {
 });
 
 function hash(input, salt){
-    var hashed = crypto.pbkdf2Sync(input, salt, 100000, 1024,'sha512');
-    return hashed.toString('hex');
+    var hashed = crypto.pbkdf2Sync(input, salt, 10000, 512,'sha512');
+    return ["pbkdf2", "10000", salt, hashed.toString('hex')].join('$');
 }
 
 app.get('/hash/:input', function(req,res){
     var hashedString = hash(req.params.input, 'this-is-some-random-string');
     res.send(hashedString);
+});
+
+app.post('/create-user', function (req, res){
+    var username = req.body.username;
+    var password = req.body.password;
+    var salt = crypto.randomBytes(128).toString('hex');
+    var dbString = hash(password, salt);
+    Pool.query('INSERT INTO "user" (username, password) VALUES ($1, $2)',[username, dbString], function(errr, result){
+        if(errr) {
+            res.status(500).send(errr.toString());
+        } else {
+            res.send('User Successfully Created : ' + username);
+        }
+    });
+});
+
+app.post('/login', function(req, res){
+    var username = req.body.username;
+    var password = req.body.password;
+    
+    Pool.query('SELECT * from "user" username = $1', [username], function(errr, result){
+        if(errr) {
+            res.status(500).send(errr.toString());
+        } else {
+            if(result.rows.length === 0) {
+                res.status(403).send('username/password is invalid !');
+            } else {
+                var dbString = result.rows[0].password;
+                var salt = dbString.split('$')[2];
+                var hashedPassword = hash(password, salt);
+                if(hashedPassword === dbString){
+                    res.send('Credentials Correct !');
+                } else {
+                    res.send(403).send('username/password is invalid !');
+                }
+            }
+        }
+    });
 });
 
 var Pool = new Pool(config);
