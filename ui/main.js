@@ -1,5 +1,5 @@
-var submit = document.getElementById('submit');
-submit.onClick = function () {
+var submit = document.getElementById('submitBtn');
+submit.onclick = function () {
     
     var request = new XMLHttpRequest();
     
