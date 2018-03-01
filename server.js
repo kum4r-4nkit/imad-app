@@ -82,7 +82,7 @@ app.post('/login', function(req, res){
     var username = req.body.username;
     var password = req.body.password;
     
-    Pool.query('SELECT * from "user" username = $1', [username], function(errr, result){
+    Pool.query('SELECT * FROM "user" WHERE username = $1', [username], function(errr, result){
         if(errr) {
             res.status(500).send(errr.toString());
         } else {
