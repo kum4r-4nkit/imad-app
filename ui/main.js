@@ -17,11 +17,11 @@ submit.onclick = function () {
         }
     };
     
-    var userName = document.getElementById('username');
-    var passWord = document.getElementById('password');
-    console.log('userName');
-    console.log('passWord');
+    var username = document.getElementById('userName');
+    var password = document.getElementById('passWord');
+    console.log('username');
+    console.log('password');
     request.open('POST','http://kumar805231.imad.hasura-app.io/login',true);
     request.setRequestHeader('Content-Type', 'application/json');
-    request.send(JSON.stringify({userName : username, passWord : password}));
+    request.send(JSON.stringify({username : userName, password : passWord}));
 };
