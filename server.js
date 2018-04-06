@@ -163,8 +163,13 @@ app.get('/get-articles', function (req, res) {
       if (err) {
           res.status(500).send(err.toString());
       } else {
-          res.send(JSON.stringify(result.rows));
-      }
+           if(result.rows.length === 0){
+               res.status(404).send('Article not found.');
+           } else {
+               res.setHeader('Content-Type', 'application/json');
+               res.send(JSON.stringify(result.rows));
+           }
+       }
    });
 });
 
@@ -173,17 +178,10 @@ app.get('/get-comments/:articleName', function (req, res) {
    // return a response with the results
    pool.query('SELECT comment.*, "user".username FROM article, comment, "user" WHERE article.title = $1 AND article.id = comment.article_id AND comment.user_id = "user".id ORDER BY comment.timestamp DESC', [req.params.articleName], function (err, result) {
       if (err) {
-          console.error('Error executing query', err.stack);
           res.status(500).send(err.toString());
       } else {
-           if(result.rows.length === 0){
-               res.status(404).send('Article not found.');
-           }
-           else {
-               res.setHeader('Content-Type', 'application/json');
-               res.send(JSON.stringify(result.rows));
-           }
-   }
+          res.send(JSON.stringify(result.rows));
+      }
    });
 });
 
